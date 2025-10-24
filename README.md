@@ -50,7 +50,12 @@
 3. **超时控制**
    - 默认等待锁时间：10秒
    - 默认锁超时时间：30秒
-
+## 📷 系统截图
+![dasboard](screenshot/dasboard.png)
+![files](screenshot/files.png)
+![api](screenshot/api.png)
+![logs](screenshot/logs.png)
+![test](screenshot/test.png)
 ## 📦 快速开始
 
 ### 前置要求
