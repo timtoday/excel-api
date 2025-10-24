@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>请求日志 -Excel API </title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    
+    <div class="container">
+        <h1>📝 请求日志</h1>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${stats.totalRequests}">0</div>
+                    <div class="stat-label">总请求数</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${stats.successRequests}">0</div>
+                    <div class="stat-label">成功请求</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">❌</div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${stats.errorRequests}">0</div>
+                    <div class="stat-label">失败请求</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>最近100条日志</h2>
+                <form th:action="@{/admin/logs/clear}" method="post" style="margin: 0;">
+                    <button type="submit" class="btn btn-danger" 
+                            onclick="return confirm('确定要清空所有日志吗？')">清空日志</button>
+                </form>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>方法</th>
+                        <th>路径</th>
+                        <th>Token</th>
+                        <th>状态</th>
+                        <th>耗时</th>
+                        <th>客户端IP</th>
+                        <th>详情</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="log : ${logs}">
+                        <td th:text="${#temporals.format(log.timestamp, 'MM-dd HH:mm:ss')}"></td>
+                        <td><span class="badge" th:text="${log.method}"></span></td>
+                        <td th:text="${log.path}" style="font-size: 12px;"></td>
+                        <td th:text="${log.tokenName ?: '-'}"></td>
+                        <td>
+                            <span th:classappend="${log.statusCode == 200 ? 'badge-success' : 'badge-error'}" 
+                                  class="badge"
+                                  th:text="${log.statusCode}"></span>
+                        </td>
+                        <td th:text="${log.duration + 'ms'}"></td>
+                        <td th:text="${log.clientIp ?: '-'}"></td>
+                        <td>
+                            <button class="btn btn-secondary btn-small" 
+                                    th:onclick="'toggleDetails(' + ${logStat.index} + ')'"
+                                    th:attr="id='btn-' + ${logStat.index}">查看</button>
+                        </td>
+                    </tr>
+                    <tr th:each="log, logStat : ${logs}" 
+                        th:id="'details-' + ${logStat.index}" 
+                        style="display: none;">
+                        <td colspan="8" style="background: #f9fafb; padding: 15px;">
+                            <div th:if="${log.errorMessage}" style="color: #ef4444; margin-bottom: 10px;">
+                                <strong>错误:</strong> <span th:text="${log.errorMessage}"></span>
+                            </div>
+                            <div th:if="${log.requestBody}">
+                                <strong>请求体:</strong>
+                                <pre style="margin: 5px 0; font-size: 12px; white-space: pre-wrap;" th:text="${log.requestBody}"></pre>
+                            </div>
+                            <div th:if="${log.responseBody}">
+                                <strong>响应体:</strong>
+                                <pre style="margin: 5px 0; font-size: 12px; white-space: pre-wrap;" th:text="${log.responseBody}"></pre>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(logs)}">
+                        <td colspan="8" style="text-align: center; color: #999;">暂无日志记录</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        function toggleDetails(index) {
+            const details = document.getElementById('details-' + index);
+            const btn = document.getElementById('btn-' + index);
+            if (details.style.display === 'none') {
+                details.style.display = 'table-row';
+                btn.textContent = '隐藏';
+            } else {
+                details.style.display = 'none';
+                btn.textContent = '查看';
+            }
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,122 @@
+server:
+  port: 18081
+
+spring:
+  application:
+    name: excel-api-service
+  
+  # Thymeleaf配置
+  thymeleaf:
+    cache: false
+    encoding: UTF-8
+    mode: HTML
+    prefix: classpath:/templates/
+    suffix: .html
+  
+  # H2数据库配置（Token和日志持久化）
+  datasource:
+    url: jdbc:h2:file:./data/excel-api;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  
+  # Redis配置（可选，用于分布式锁）
+  redis:
+    host: localhost
+    port: 6379
+    password: 
+    database: 0
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+# Excel文件存储配置
+excel:
+  storage:
+    # 存储路径
+    path: ./excel-files
+    # 临时文件路径
+    temp-path: ./excel-temp
+    # 是否启用文件版本控制
+    version-control: true
+    # 最大版本数
+    max-versions: 10
+  
+  lock:
+    # 锁类型: local(本地锁) 或 redis(分布式锁)
+    type: local
+    # 锁超时时间（毫秒）
+    timeout: 30000
+    # 等待锁的最大时间（毫秒）
+    wait-time: 10000
+
+  # 计算配置
+  calculation:
+    # 是否启用公式缓存
+    cache-enabled: true
+    # 最大并发读取数
+    max-concurrent-reads: 50
+    # 最大并发写入数（建议设为1保证数据一致性）
+    max-concurrent-writes: 1
+
+# 日志配置
+logging:
+  level:
+    com.excel: DEBUG
+    org.apache.poi: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ./logs/excel-api.log
+    max-size: 10MB
+    max-history: 30
+    total-size-cap: 1GB
+
+# Swagger配置
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+# 管理后台配置
+admin:
+  users:
+    - username: admin
+      password: admin123
+      role: ADMIN
+    - username: user
+      password: user123
+      role: USER
+  
+  # API Token配置
+  tokens:
+    default-expiry-days: 30
+    max-tokens-per-user: 10
+

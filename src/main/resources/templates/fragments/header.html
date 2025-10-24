@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="header" class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span>📊 Excel API</span>
+            </div>
+            <nav class="nav">
+                <a href="/admin/dashboard" th:classappend="${currentPage == 'dashboard' ? 'active' : ''}">控制台</a>
+                <a href="/admin/files" th:classappend="${currentPage == 'files' ? 'active' : ''}">Excel文件</a>
+                <a href="/admin/tokens" th:classappend="${currentPage == 'tokens' ? 'active' : ''}">Token管理</a>
+                <a href="/admin/logs" th:classappend="${currentPage == 'logs' ? 'active' : ''}">请求日志</a>
+                <a href="/admin/test" th:classappend="${currentPage == 'test' ? 'active' : ''}">API测试</a>
+            </nav>
+            <div class="user-menu">
+                <span th:text="${username}">用户</span>
+                <form th:action="@{/admin/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="btn-logout">退出</button>
+                </form>
+            </div>
+        </div>
+</div>
+</html>
+

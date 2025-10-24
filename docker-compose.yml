@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  excel-api:
+    build: .
+    container_name: excel-api
+    ports:
+      - "18081:18081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - EXCEL_STORAGE_PATH=/data/excel-files
+      - EXCEL_TEMP_PATH=/data/excel-temp
+    volumes:
+      - excel-data:/data
+      - excel-logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - excel-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:18081/api/excel/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    container_name: excel-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - excel-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  excel-data:
+    driver: local
+  excel-logs:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  excel-network:
+    driver: bridge
+

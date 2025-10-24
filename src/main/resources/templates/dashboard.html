@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>控制台 - Excel API 管理后台</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    
+    <div class="container">
+        <h1>📊 控制台</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🔑</div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${tokenCount}">0</div>
+                    <div class="stat-label">总Token数</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${activeTokenCount}">0</div>
+                    <div class="stat-label">活跃Token</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">📝</div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${totalRequests}">0</div>
+                    <div class="stat-label">总请求数</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>最近请求</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>方法</th>
+                        <th>路径</th>
+                        <th>Token</th>
+                        <th>状态</th>
+                        <th>耗时</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="log : ${recentLogs}">
+                        <td th:text="${#temporals.format(log.timestamp, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                        <td><span class="badge" th:text="${log.method}"></span></td>
+                        <td th:text="${log.path}"></td>
+                        <td th:text="${log.tokenName}"></td>
+                        <td>
+                            <span th:classappend="${log.statusCode == 200 ? 'badge-success' : 'badge-error'}" 
+                                  class="badge"
+                                  th:text="${log.statusCode}"></span>
+                        </td>
+                        <td th:text="${log.duration + 'ms'}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(recentLogs)}">
+                        <td colspan="6" style="text-align: center; color: #999;">暂无请求记录</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+

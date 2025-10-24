@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token管理 -Excel API </title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    
+    <div class="container">
+        <h1>🔑 Token管理</h1>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <div th:if="${newToken}" class="token-display">
+            <h3>✅ Token创建成功！</h3>
+            <p><strong>名称：</strong> <span th:text="${tokenName}"></span></p>
+            <p><strong>Token：</strong></p>
+            <div class="token-value" id="tokenValue" th:text="${newToken}"></div>
+            <button class="copy-btn" onclick="copyToken()">📋 复制Token</button>
+            <p style="color: #ef4444; margin-top: 10px; font-size: 14px;">⚠️ 请妥善保存此Token，关闭后将无法再次查看！</p>
+        </div>
+        
+        <div class="card">
+            <h2>创建新Token</h2>
+            <form th:action="@{/admin/tokens/create}" method="post">
+                <div class="form-group">
+                    <label for="name">Token名称 *</label>
+                    <input type="text" id="name" name="name" class="form-control" required 
+                           placeholder="例如：前端应用Token">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">描述</label>
+                    <input type="text" id="description" name="description" class="form-control"
+                           placeholder="说明此Token的用途">
+                </div>
+                
+                <div class="form-group">
+                    <label for="expiryDays">有效期（天）</label>
+                    <input type="number" id="expiryDays" name="expiryDays" class="form-control"
+                           th:value="${defaultExpiryDays}" min="1" max="365">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">创建Token</button>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h2>Token列表 (共 <span th:text="${#lists.size(tokens)}">0</span> 个)</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>描述</th>
+                        <th>创建者</th>
+                        <th>创建时间</th>
+                        <th>过期时间</th>
+                        <th>使用次数</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="token : ${tokens}">
+                        <td th:text="${token.name}"></td>
+                        <td th:text="${token.description}"></td>
+                        <td th:text="${token.createdBy}"></td>
+                        <td th:text="${#temporals.format(token.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                        <td th:text="${#temporals.format(token.expiresAt, 'yyyy-MM-dd HH:mm')}"></td>
+                        <td th:text="${token.usageCount}"></td>
+                        <td>
+                            <span th:if="${token.active}" class="badge-success">✅ 活跃</span>
+                            <span th:unless="${token.active}" class="badge-error">❌ 已禁用</span>
+                        </td>
+                        <td>
+                            <form th:action="@{/admin/tokens/toggle}" method="post" style="display: inline;">
+                                <input type="hidden" name="token" th:value="${token.token}">
+                                <button type="submit" class="btn btn-secondary btn-small" 
+                                        th:text="${token.active ? '禁用' : '启用'}"></button>
+                            </form>
+                            <form th:action="@{/admin/tokens/delete}" method="post" style="display: inline;">
+                                <input type="hidden" name="token" th:value="${token.token}">
+                                <button type="submit" class="btn btn-danger btn-small"
+                                        onclick="return confirm('确定要删除此Token吗？')">删除</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(tokens)}">
+                        <td colspan="8" style="text-align: center; color: #999;">暂无Token</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        function copyToken() {
+            const tokenValue = document.getElementById('tokenValue').innerText;
+            navigator.clipboard.writeText(tokenValue).then(() => {
+                alert('Token已复制到剪贴板！');
+            });
+        }
+    </script>
+</body>
+</html>
+

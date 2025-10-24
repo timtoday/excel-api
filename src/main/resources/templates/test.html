@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试 -Excel API </title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    
+    <div class="container">
+        <h1>🧪 API测试</h1>
+        
+        <div class="card">
+            <h2>基础配置</h2>
+            <div class="form-group">
+                <label for="apiToken">选择Token *</label>
+                <select id="apiToken" class="form-control">
+                    <option value="">请选择Token</option>
+                    <option th:each="token : ${tokens}" th:value="${token.token}" th:text="${token.name}"></option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="apiEndpoint">API接口 *</label>
+                <select id="apiEndpoint" class="form-control" onchange="updateExample()">
+                    <optgroup label="📝 Excel 操作">
+                        <option value="write">写入Excel</option>
+                        <option value="read">读取Excel</option>
+                        <option value="operation">写入并读取（组合操作）</option>
+                    </optgroup>
+                    <optgroup label="📁 文件管理">
+                        <option value="upload">上传文件</option>
+                        <option value="download">下载文件</option>
+                    </optgroup>
+                    <optgroup label="📄 模板功能">
+                        <option value="templateGenerate">模板生成（返回文件名）</option>
+                        <option value="templateDownload">模板填充并下载</option>
+                    </optgroup>
+                    <optgroup label="🔧 系统">
+                        <option value="health">健康检查</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>测试用例</h2>
+            
+            <div class="form-group">
+                <label for="excelFile">选择Excel文件（可选）</label>
+                <select id="excelFile" class="form-control" onchange="insertFileName()">
+                    <option value="">选择已上传的文件</option>
+                    <option th:each="file : ${files}" th:value="${file}" th:text="${file}"></option>
+                </select>
+            </div>
+            
+            <!-- 文件上传区域（仅在upload接口时显示） -->
+            <div id="uploadArea" class="form-group" style="display: none;">
+                <label for="uploadFile">选择文件上传 *</label>
+                <input type="file" id="uploadFile" class="form-control" accept=".xlsx,.xls">
+            </div>
+            
+            <!-- 下载文件名（仅在download接口时显示） -->
+            <div id="downloadArea" class="form-group" style="display: none;">
+                <label for="downloadFileName">要下载的文件名 *</label>
+                <input type="text" id="downloadFileName" class="form-control" placeholder="例如: test.xlsx">
+            </div>
+            
+            <div id="jsonArea" class="form-group">
+                <label for="requestBody">请求体（JSON）</label>
+                <textarea id="requestBody" class="form-control" rows="15"></textarea>
+            </div>
+            
+            <button class="btn btn-primary" onclick="sendRequest()">🚀 发送请求</button>
+            <button class="btn btn-secondary" onclick="updateExample()">📝 加载示例</button>
+        </div>
+        
+        <div class="card" id="responseCard" style="display: none;">
+            <h2>响应结果</h2>
+            <div id="responseStatus"></div>
+            <div id="responseBody" class="test-result"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 所有接口的示例数据
+        const examples = {
+            write: {
+                fileName: 'test.xlsx',
+                sheetName: 'Sheet1',
+                cells: [
+                    {cellAddress: 'A1', value: '姓名', valueType: 'STRING'},
+                    {cellAddress: 'B1', value: '分数', valueType: 'STRING'},
+                    {cellAddress: 'A2', value: '张三', valueType: 'STRING'},
+                    {cellAddress: 'B2', value: 85, valueType: 'NUMBER'},
+                    {cellAddress: 'A3', value: '李四', valueType: 'STRING'},
+                    {cellAddress: 'B3', value: 92, valueType: 'NUMBER'},
+                    {cellAddress: 'B4', value: '=AVERAGE(B2:B3)', valueType: 'FORMULA'},
+                    {sheetName: 'Sheet2', cellAddress: 'A1', value: '统计', valueType: 'STRING'},
+                    {sheetName: 'Sheet2', cellAddress: 'B1', value: '=Sheet1!B4', valueType: 'FORMULA'}
+                ]
+            },
+            read: {
+                fileName: 'test.xlsx',
+                sheetName: 'Sheet1',
+                cells: [
+                    {cellAddress: 'A1'},
+                    {cellAddress: 'A2'},
+                    {cellAddress: 'B2'},
+                    {cellAddress: 'B4'},
+                    {sheetName: 'Sheet2', cellAddress: 'A1'},
+                    {sheetName: 'Sheet2', cellAddress: 'B1'}
+                ],
+                readFormula: false
+            },
+            operation: {
+                fileName: 'test.xlsx',
+                writeRequest: {
+                    cells: [
+                        {sheetName: '销售数据', cellAddress: 'A1', value: '产品', valueType: 'STRING'},
+                        {sheetName: '销售数据', cellAddress: 'B1', value: 50000, valueType: 'NUMBER'},
+                        {sheetName: '成本数据', cellAddress: 'A1', value: '成本', valueType: 'STRING'},
+                        {sheetName: '成本数据', cellAddress: 'B1', value: 30000, valueType: 'NUMBER'},
+                        {sheetName: '利润统计', cellAddress: 'A1', value: '净利润', valueType: 'STRING'},
+                        {sheetName: '利润统计', cellAddress: 'B1', value: '=销售数据!B1-成本数据!B1', valueType: 'FORMULA'}
+                    ]
+                },
+                readRequest: {
+                    cells: [
+                        {sheetName: '销售数据', cellAddress: 'B1'},
+                        {sheetName: '成本数据', cellAddress: 'B1'},
+                        {sheetName: '利润统计', cellAddress: 'B1'}
+                    ],
+                    readFormula: false
+                }
+            },
+            upload: {
+                note: '请使用上方的文件选择器选择要上传的Excel文件'
+            },
+            download: {
+                note: '请在上方输入要下载的文件名，例如: test.xlsx'
+            },
+            templateGenerate: {
+                templateFileName: 'template.xlsx',
+                outputFileName: 'report_2024_10.xlsx',
+                cells: [
+                    {sheetName: '报告首页', cellAddress: 'A1', value: '2024年10月报告', valueType: 'STRING'},
+                    {sheetName: '数据详情', cellAddress: 'B5', value: 12345.67, valueType: 'NUMBER'},
+                    {sheetName: '统计汇总', cellAddress: 'C10', value: '=数据详情!B5*1.1', valueType: 'FORMULA'}
+                ]
+            },
+            templateDownload: {
+                templateFileName: 'template.xlsx',
+                cells: [
+                    {sheetName: '报告首页', cellAddress: 'A1', value: '即时报告', valueType: 'STRING'},
+                    {sheetName: '数据详情', cellAddress: 'B5', value: 999, valueType: 'NUMBER'},
+                    {sheetName: '统计汇总', cellAddress: 'A1', value: '=数据详情!B5*2', valueType: 'FORMULA'}
+                ]
+            },
+            health: {
+                note: '健康检查接口无需请求体，直接发送GET请求'
+            }
+        };
+        
+        // API接口配置
+        const apiConfig = {
+            write: { url: '/api/excel/write', method: 'POST', needToken: true, needJson: true },
+            read: { url: '/api/excel/read', method: 'POST', needToken: true, needJson: true },
+            operation: { url: '/api/excel/operation', method: 'POST', needToken: true, needJson: true },
+            upload: { url: '/api/excel/upload', method: 'POST', needToken: true, needJson: false, isUpload: true },
+            download: { url: '/api/excel/download/', method: 'GET', needToken: true, needJson: false, isDownload: true },
+            templateGenerate: { url: '/api/excel/template/generate', method: 'POST', needToken: true, needJson: true },
+            templateDownload: { url: '/api/excel/template/fill-and-download', method: 'POST', needToken: true, needJson: true, isDownload: true },
+            health: { url: '/api/excel/health', method: 'GET', needToken: false, needJson: false }
+        };
+        
+        // 更新示例和UI
+        function updateExample() {
+            const endpoint = document.getElementById('apiEndpoint').value;
+            const exampleData = examples[endpoint];
+            const config = apiConfig[endpoint];
+            
+            // 更新请求体
+            document.getElementById('requestBody').value = JSON.stringify(exampleData, null, 2);
+            
+            // 显示/隐藏相关区域
+            document.getElementById('uploadArea').style.display = config.isUpload ? 'block' : 'none';
+            document.getElementById('downloadArea').style.display = config.isDownload && endpoint === 'download' ? 'block' : 'none';
+            document.getElementById('jsonArea').style.display = config.needJson ? 'block' : 'none';
+            
+            // 清空响应区域
+            document.getElementById('responseCard').style.display = 'none';
+        }
+        
+        // 插入文件名到JSON
+        function insertFileName() {
+            const fileName = document.getElementById('excelFile').value;
+            if (!fileName) return;
+            
+            const endpoint = document.getElementById('apiEndpoint').value;
+            const config = apiConfig[endpoint];
+            
+            if (endpoint === 'download') {
+                document.getElementById('downloadFileName').value = fileName;
+            } else if (config.needJson) {
+                try {
+                    const json = JSON.parse(document.getElementById('requestBody').value);
+                    json.fileName = fileName;
+                    document.getElementById('requestBody').value = JSON.stringify(json, null, 2);
+                } catch (e) {
+                    // 忽略JSON解析错误
+                }
+            }
+        }
+        
+        // 发送请求
+        async function sendRequest() {
+            const endpoint = document.getElementById('apiEndpoint').value;
+            const config = apiConfig[endpoint];
+            const token = document.getElementById('apiToken').value;
+            
+            // 检查Token（如果需要）
+            if (config.needToken && !token) {
+                alert('请选择Token');
+                return;
+            }
+            
+            try {
+                let response, responseBody, contentType;
+                const startTime = Date.now();
+                
+                // 根据不同的接口类型处理请求
+                if (config.isUpload) {
+                    // 文件上传
+                    const fileInput = document.getElementById('uploadFile');
+                    if (!fileInput.files[0]) {
+                        alert('请选择要上传的文件');
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    
+                    response = await fetch(config.url, {
+                        method: config.method,
+                        headers: {'X-API-Token': token},
+                        body: formData
+                    });
+                    
+                    responseBody = await response.text();
+                    try {
+                        responseBody = JSON.stringify(JSON.parse(responseBody), null, 2);
+                    } catch (e) {}
+                    
+                } else if (config.isDownload) {
+                    // 文件下载
+                    let url = config.url;
+                    if (endpoint === 'download') {
+                        const fileName = document.getElementById('downloadFileName').value;
+                        if (!fileName) {
+                            alert('请输入要下载的文件名');
+                            return;
+                        }
+                        url += fileName;
+                    }
+                    
+                    const headers = {'X-API-Token': token};
+                    
+                    if (endpoint === 'templateDownload') {
+                        // 模板下载需要POST JSON
+                        headers['Content-Type'] = 'application/json';
+                        response = await fetch(url, {
+                            method: config.method,
+                            headers: headers,
+                            body: document.getElementById('requestBody').value
+                        });
+                    } else {
+                        // 普通下载
+                        response = await fetch(url, {
+                            method: config.method,
+                            headers: headers
+                        });
+                    }
+                    
+                    if (response.ok) {
+                        // 下载文件
+                        const blob = await response.blob();
+                        const downloadUrl = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = downloadUrl;
+                        a.download = endpoint === 'download' ? 
+                            document.getElementById('downloadFileName').value : 
+                            'template_filled.xlsx';
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(downloadUrl);
+                        
+                        responseBody = `文件下载成功！\n文件大小: ${(blob.size / 1024).toFixed(2)} KB`;
+                    } else {
+                        responseBody = await response.text();
+                    }
+                    
+                } else {
+                    // 普通JSON请求
+                    const headers = {};
+                    if (config.needToken) {
+                        headers['X-API-Token'] = token;
+                    }
+                    if (config.needJson) {
+                        headers['Content-Type'] = 'application/json';
+                    }
+                    
+                    response = await fetch(config.url, {
+                        method: config.method,
+                        headers: headers,
+                        body: config.needJson ? document.getElementById('requestBody').value : undefined
+                    });
+                    
+                    responseBody = await response.text();
+                    try {
+                        responseBody = JSON.stringify(JSON.parse(responseBody), null, 2);
+                    } catch (e) {}
+                }
+                
+                const duration = Date.now() - startTime;
+                
+                // 显示响应
+                document.getElementById('responseCard').style.display = 'block';
+                document.getElementById('responseStatus').innerHTML = 
+                    `<div class="alert ${response.ok ? 'alert-success' : 'alert-error'}">
+                        <strong>状态码:</strong> ${response.status} ${response.statusText} | 
+                        <strong>耗时:</strong> ${duration}ms | 
+                        <strong>方法:</strong> ${config.method} ${config.url}
+                    </div>`;
+                document.getElementById('responseBody').textContent = responseBody;
+                
+            } catch (error) {
+                document.getElementById('responseCard').style.display = 'block';
+                document.getElementById('responseStatus').innerHTML = 
+                    '<div class="alert alert-error"><strong>请求失败</strong></div>';
+                document.getElementById('responseBody').textContent = 
+                    'Error: ' + error.message + '\n\n' + error.stack;
+            }
+        }
+        
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            updateExample();
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,40 @@
+# 生产环境配置
+server:
+  port: ${SERVER_PORT:18081}
+
+spring:
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+
+excel:
+  storage:
+    path: ${EXCEL_STORAGE_PATH:/data/excel-files}
+    temp-path: ${EXCEL_TEMP_PATH:/data/excel-temp}
+    version-control: true
+    max-versions: 10
+  
+  lock:
+    type: redis  # 生产环境使用分布式锁
+    timeout: 30000
+    wait-time: 10000
+
+  calculation:
+    cache-enabled: true
+    max-concurrent-reads: 100
+    max-concurrent-writes: 5
+
+logging:
+  level:
+    com.excel: INFO
+    org.apache.poi: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE_PATH:./logs}/excel-api.log
+    max-size: 100MB
+    max-history: 30
+    total-size-cap: 10GB
+

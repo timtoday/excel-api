@@ -1,0 +1,46 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# Mac
+.DS_Store
+
+# Excel files (ignore contents but keep directory structure)
+excel-files/*
+!excel-files/.gitkeep
+excel-temp/*
+!excel-temp/.gitkeep
+
+# Logs (ignore contents but keep directory structure)
+logs/*
+!logs/.gitkeep
+*.log
+
+# H2 Database files
+data/
+*.db
+*.trace.db
+
+# Spring Boot
+application-local.yml
+

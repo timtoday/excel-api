@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel文件管理 - Excel API </title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    
+    <div class="container">
+        <h1>📁 Excel文件管理</h1>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <div class="card">
+            <h2>上传Excel文件</h2>
+            <form th:action="@{/admin/files/upload}" method="post" enctype="multipart/form-data">
+                <div class="file-upload">
+                    <input type="file" name="file" accept=".xlsx,.xls" required>
+                    <p style="margin-top: 10px; color: #666;">支持.xlsx和.xls格式</p>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 15px;">上传文件</button>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h2>文件列表 (共 <span th:text="${totalFiles}">0</span> 个文件, 总大小: <span th:text="${#numbers.formatDecimal(totalSize, 1, 2)}">0</span> KB)</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>文件名</th>
+                        <th>大小</th>
+                        <th>最后修改时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="file : ${files}">
+                        <td th:text="${file.name}"></td>
+                        <td th:text="${#numbers.formatDecimal(file.sizeKb, 1, 2) + ' KB'}"></td>
+                        <td th:text="${#dates.format(file.lastModified, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                        <td>
+                            <a th:href="@{/api/excel/download/{fileName}(fileName=${file.name})}" 
+                               class="btn btn-success btn-small">下载</a>
+                            <form th:action="@{/admin/files/delete}" method="post" style="display: inline;">
+                                <input type="hidden" name="filename" th:value="${file.name}">
+                                <button type="submit" class="btn btn-danger btn-small" 
+                                        onclick="return confirm('确定要删除此文件吗？')">删除</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(files)}">
+                        <td colspan="4" style="text-align: center; color: #999;">暂无文件</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+
