@@ -14,7 +14,7 @@
 
     <groupId>com.excel</groupId>
     <artifactId>excel-api</artifactId>
-    <version>1.0.0</version>
+    <version>1.2.1</version>
     <name>Excel API Service</name>
     <description>高可用Excel公式计算API服务</description>
 
@@ -79,8 +79,7 @@
             <version>${poi.version}</version>
         </dependency>
 
-        <!-- Redis for distributed lock (optional) - 暂时禁用 -->
-        <!--
+        <!-- Redis for distributed lock (optional) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
@@ -90,7 +89,6 @@
             <artifactId>redisson</artifactId>
             <version>3.25.0</version>
         </dependency>
-        -->
 
         <!-- Lombok -->
         <dependency>
