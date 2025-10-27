@@ -1,6 +1,6 @@
 # Excel API Service
 
-bu高可用的Excel公式计算API服务，支持多用户并发读写Excel文件。
+高可用的Excel公式计算API服务，支持多用户并发读写Excel文件。
 
 > **🇨🇳 中国大陆用户注意**  
 > Docker构建前请先配置镜像加速器，否则会超时失败！  
