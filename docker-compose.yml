@@ -32,8 +32,9 @@ services:
   redis:
     image: redis:7-alpine
     container_name: excel-redis
-    ports:
-      - "6379:6379"
+    # 不映射到宿主机端口，只供内部服务使用
+    expose:
+      - "6379"
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes
