@@ -3,10 +3,22 @@ server:
   port: ${SERVER_PORT:18081}
 
 spring:
-  redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
-    password: ${REDIS_PASSWORD:}
+  # Redis配置（暂时禁用）
+  # redis:
+  #   host: ${REDIS_HOST:localhost}
+  #   port: ${REDIS_PORT:6379}
+  #   password: ${REDIS_PASSWORD:}
+  
+  # 禁用Redis相关的自动配置
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.data.redis.RedisHealthContributorAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.data.redis.RedisReactiveHealthContributorAutoConfiguration
+      - org.redisson.spring.starter.RedissonAutoConfiguration
+      - org.redisson.spring.starter.RedissonAutoConfigurationV2
 
 excel:
   storage:

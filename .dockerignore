@@ -1,0 +1,47 @@
+# 源代码（只需要构建好的jar）
+src/
+pom.xml
+
+# Maven相关
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# 文档
+*.md
+docs/
+
+# 本地数据（不打包到镜像）
+data/
+excel-files/
+excel-temp/
+logs/
+*.log
+
+# 测试
+src/test/
+
+# 其他
+*.bat
+*.sh
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# 系统文件
+.DS_Store
+Thumbs.db
+

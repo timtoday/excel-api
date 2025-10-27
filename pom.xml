@@ -79,16 +79,18 @@
             <version>${poi.version}</version>
         </dependency>
 
-        <!-- Redis for distributed lock (optional) -->
+        <!-- Redis for distributed lock (optional) - 暂时禁用 -->
+        <!--
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
         <dependency>
             <groupId>org.redisson</groupId>
-            <artifactId>redisson-spring-boot-starter</artifactId>
+            <artifactId>redisson</artifactId>
             <version>3.25.0</version>
         </dependency>
+        -->
 
         <!-- Lombok -->
         <dependency>
@@ -128,5 +130,27 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- Maven Profiles（可选，一般不需要） -->
+    <profiles>
+        <!-- 开发环境 Profile -->
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+        </profile>
+
+        <!-- 生产环境 Profile -->
+        <profile>
+            <id>prod</id>
+            <properties>
+                <spring.profiles.active>prod</spring.profiles.active>
+            </properties>
+        </profile>
+    </profiles>
 </project>
 

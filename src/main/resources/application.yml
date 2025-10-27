@@ -34,19 +34,30 @@ spring:
       hibernate:
         format_sql: true
   
-  # Redis配置（可选，用于分布式锁）
-  redis:
-    host: localhost
-    port: 6379
-    password: 
-    database: 0
-    timeout: 3000ms
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
-        max-wait: -1ms
+  # Redis配置（暂时禁用）
+  # redis:
+  #   host: localhost
+  #   port: 6379
+  #   password:
+  #   database: 0
+  #   timeout: 3000ms
+  #   lettuce:
+  #     pool:
+  #       max-active: 8
+  #       max-idle: 8
+  #       min-idle: 0
+  #       max-wait: -1ms
+  
+  # 禁用Redis相关的自动配置
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.data.redis.RedisHealthContributorAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.data.redis.RedisReactiveHealthContributorAutoConfiguration
+      - org.redisson.spring.starter.RedissonAutoConfiguration
+      - org.redisson.spring.starter.RedissonAutoConfigurationV2
 
   servlet:
     multipart:

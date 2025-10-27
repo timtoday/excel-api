@@ -1,6 +1,10 @@
 # Excel API Service
-如果需要生成一个高还原度的Excel模板，如果你需要把Excel公式分析成算法转换成Python、Java 、Go 等语言逻辑，可以试试本项目。
-高可用的Excel公式计算API服务，支持多用户并发读写Excel文件。
+
+bu高可用的Excel公式计算API服务，支持多用户并发读写Excel文件。
+
+> **🇨🇳 中国大陆用户注意**  
+> Docker构建前请先配置镜像加速器，否则会超时失败！  
+> 📖 查看 **[START_HERE.md](START_HERE.md)** 获取完整步骤（5分钟配置）
 
 ## 🚀 功能特性
 
@@ -50,12 +54,15 @@
 3. **超时控制**
    - 默认等待锁时间：10秒
    - 默认锁超时时间：30秒
+
 ## 📷 系统截图
 ![dasboard](screenshot/dasboard.png)
 ![files](screenshot/files.png)
 ![api](screenshot/api.png)
 ![logs](screenshot/logs.png)
 ![test](screenshot/test.png)
+
+
 ## 📦 快速开始
 
 ### 前置要求
@@ -477,36 +484,86 @@ server {
 
 ### Docker部署
 
-创建 `Dockerfile`：
+#### 方式1: 一键构建和部署（推荐）
 
-```dockerfile
-FROM openjdk:17-jdk-slim
-WORKDIR /app
-COPY target/excel-api-1.0.0.jar app.jar
-EXPOSE 18081
-ENTRYPOINT ["java", "-jar", "app.jar"]
+**国际版本**（需要畅通的Docker Hub连接）:
+
+**Linux/Mac**：
+```bash
+chmod +x docker-build.sh
+./docker-build.sh
 ```
 
-使用docker-compose：
+**Windows**：
+```cmd
+docker-build.bat
+```
 
-```yaml
-version: '3.8'
-services:
-  excel-api:
-    build: .
-    ports:
-      - "18081:18081"
-    environment:
-      - SPRING_REDIS_HOST=redis
-    volumes:
-      - ./excel-files:/app/excel-files
-    depends_on:
-      - redis
-  
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
+**国内优化版本**（中国大陆用户推荐）⭐:
+
+**Linux/Mac**：
+```bash
+chmod +x docker-build-cn.sh
+./docker-build-cn.sh
+```
+
+**Windows**：
+```cmd
+docker-build-cn.bat
+```
+
+脚本会自动完成：
+1. Maven构建jar包
+2. 构建优化后的Docker镜像（~200MB）
+3. 启动Docker Compose服务
+4. 健康检查验证
+5. 显示访问地址
+
+**⚠️ 遇到网络超时？** 请查看 [QUICK_FIX.md](QUICK_FIX.md) 或使用国内优化版本脚本
+
+#### 方式2: 手动构建
+
+```bash
+# 1. Maven构建
+mvn clean package -DskipTests
+
+# 2. Docker构建（使用优化后的Alpine镜像）
+docker build -t excel-api:latest .
+
+# 3. 启动服务
+docker-compose up -d
+
+# 4. 查看日志
+docker-compose logs -f excel-api
+```
+
+#### Dockerfile特点
+
+- ✅ **轻量级**：使用 `eclipse-temurin:17-jre-alpine`（~200MB）
+- ✅ **快速构建**：本地Maven构建，Docker只负责打包（10-30秒）
+- ✅ **JVM优化**：G1GC、容器内存感知、字符串去重
+- ✅ **健康检查**：自动监控服务状态
+
+**详细说明**：参见 [DOCKERFILE_OPTIMIZATION.md](DOCKERFILE_OPTIMIZATION.md)
+
+#### docker-compose.yml
+
+已包含完整配置，包括：
+- Excel API服务（端口18081）
+- Redis服务（端口6379）
+- 内部网络配置
+- 健康检查
+- 数据卷挂载
+
+```bash
+# 查看服务状态
+docker-compose ps
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
 ```
 
 ## 🔒 安全建议
@@ -563,6 +620,52 @@ A: 备份文件存储在`excel-files`目录下，文件名前缀为`backup_`。
 - [ ] API调用频率限制
 - [ ] 用户角色权限管理
 - [ ] 邮件/Webhook通知
+
+## 📚 文档导航
+
+### 快速开始
+- [STARTUP_GUIDE.md](STARTUP_GUIDE.md) ⭐ - **应用启动完整指南**（推荐首读）
+- [QUICK_START.md](QUICK_START.md) - 5分钟快速开始指南
+- [DOCKER_QUICK_START.md](DOCKER_QUICK_START.md) - Docker快速部署指南
+- [QUICK_TEST.md](QUICK_TEST.md) - 快速API测试指南
+
+### API使用
+- [API_TEST_GUIDE.md](API_TEST_GUIDE.md) - 完整API测试指南
+- [MULTI_SHEET_GUIDE.md](MULTI_SHEET_GUIDE.md) - 多Sheet操作指南
+- [MULTI_SHEET_QUICK_START.md](MULTI_SHEET_QUICK_START.md) - 多Sheet快速开始
+
+### 管理指南
+- [ADMIN_GUIDE.md](ADMIN_GUIDE.md) - Web管理后台使用指南
+- [ADMIN_TEST_MULTI_SHEET_UPDATE.md](ADMIN_TEST_MULTI_SHEET_UPDATE.md) - 管理后台测试工具
+
+### 技术参考
+- [FORMULA_SUPPORT.md](FORMULA_SUPPORT.md) - Excel公式支持说明
+- [ARCHITECTURE.md](ARCHITECTURE.md) - 系统架构设计文档
+
+### Docker相关
+- [DOCKERFILE_OPTIMIZATION.md](DOCKERFILE_OPTIMIZATION.md) - Dockerfile优化详解
+- [OPTIMIZATION_SUMMARY.md](OPTIMIZATION_SUMMARY.md) - 优化效果总结
+- [PORT_UPDATE.md](PORT_UPDATE.md) - 端口更新说明
+- [DOCKER_NETWORK_FIX.md](DOCKER_NETWORK_FIX.md) - Docker网络问题解决
+- [START_HERE.md](START_HERE.md) - Docker快速开始指南
+
+### 构建和部署
+- [MAVEN_PROFILE_GUIDE.md](MAVEN_PROFILE_GUIDE.md) - Maven Profile使用指南
+- [REDIS_CONNECTION_FIX.md](REDIS_CONNECTION_FIX.md) - Redis连接问题解决
+
+### 数据库持久化
+- [DATABASE_PERSISTENCE.md](DATABASE_PERSISTENCE.md) - 数据库持久化详细说明
+- [PERSISTENCE_QUICK_START.md](PERSISTENCE_QUICK_START.md) - 持久化快速开始
+
+### 故障排查
+- [FILE_LIST_TROUBLESHOOTING.md](FILE_LIST_TROUBLESHOOTING.md) - 文件列表故障排查
+- [OPERATION_API_FIX.md](OPERATION_API_FIX.md) - /operation API修复说明
+- [VALIDATION_FIX.md](VALIDATION_FIX.md) - 参数验证修复说明
+
+### 迁移与更新
+- [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) - 版本迁移指南
+- [CHANGELOG.md](CHANGELOG.md) - 完整更新日志
+- [PORT_QUICK_SUMMARY.md](PORT_QUICK_SUMMARY.md) - 端口更新快速总结
 
 ## 📄 许可证
 

@@ -29,6 +29,33 @@ if errorlevel 1 (
 echo ✅ Maven检查通过
 echo.
 
+REM 检查Docker和Redis
+echo 检查Redis服务...
+docker --version >nul 2>&1
+if errorlevel 1 (
+    echo ⚠️  警告：Docker未安装或未运行
+    echo    本地开发需要Redis服务
+    echo    请手动启动Redis或安装Docker
+    echo.
+) else (
+    REM 检查Redis容器状态
+    docker ps | findstr excel-redis >nul 2>&1
+    if errorlevel 1 (
+        echo ⚠️  Redis容器未运行，正在启动...
+        docker-compose up -d redis
+        if errorlevel 0 (
+            echo ✅ Redis已启动
+            timeout /t 3 /nobreak >nul
+        ) else (
+            echo ❌ Redis启动失败
+            echo    请手动运行: docker-compose up -d redis
+        )
+    ) else (
+        echo ✅ Redis服务运行正常
+    )
+)
+echo.
+
 REM 创建必要的目录
 echo 创建存储目录...
 if not exist "excel-files" mkdir excel-files

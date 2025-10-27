@@ -57,11 +57,17 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExcelResponse> handleException(Exception e) {
-        log.error("系统异常: {}", e.getMessage(), e);
+        // 忽略 favicon.ico 的 404 错误，这是浏览器的正常请求
+        String errorMessage = e.getMessage();
+        if (errorMessage != null && errorMessage.contains("favicon.ico")) {
+            log.debug("浏览器请求 favicon: {}", errorMessage);
+        } else {
+            log.error("系统异常: {}", errorMessage, e);
+        }
         
         ExcelResponse response = ExcelResponse.builder()
                 .success(false)
-                .message("系统异常: " + e.getMessage())
+                .message("系统异常: " + errorMessage)
                 .build();
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
